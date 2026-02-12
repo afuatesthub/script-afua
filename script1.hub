@@ -1,0 +1,226 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()  
+
+local Window = Rayfield:CreateWindow({  
+   Name = "Afua Hub",  -- 🌟 ĐỔI TÊN HUB Ở ĐÂY  
+   LoadingTitle = "Loading Afua Hub...",  
+   LoadingSubtitle = "Farm Ngon by Afua",  -- Đổi subtitle  
+   ConfigurationSaving = {  
+      Enabled = true,  
+      FolderName = "AfuaHub",  
+      FileName = "Config"  
+   },  
+   KeySystem = false,  -- No key  
+   Image = "rbxassetid://129771247821193"  -- 🌟 ĐỔI LOGO ID Ở ĐÂY (upload Decal Roblox)  
+})  
+
+local FarmTab = Window:CreateTab("Farm", 4483362458)  
+local CombatTab = Window:CreateTab("Combat", 4483362458)  
+local TeleportTab = Window:CreateTab("Teleport", 4483362458)  
+local MiscTab = Window:CreateTab("Misc", 4483362458)  
+
+-- Services  
+local Players = game:GetService("Players")  
+local RunService = game:GetService("RunService")  
+local TweenService = game:GetService("TweenService")  
+local ReplicatedStorage = game:GetService("ReplicatedStorage")  
+local VirtualUser = game:GetService("VirtualUser")  
+local VirtualInputManager = game:GetService("VirtualInputManager")  
+local HttpService = game:GetService("HttpService")  
+local LocalPlayer = Players.LocalPlayer  
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()  
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")  
+local Humanoid = Character:WaitForChild("Humanoid")  
+
+-- Biến toàn cục  
+local AutoFarmLevel = false  
+local AutoMastery = false  
+local AutoBoss = false  
+local FruitSniper = false  
+local FlySpeed = 100  
+local NoClip = false  
+local SelectedWeapon = "Melee"  
+
+-- Function chung  
+local function GetWeapon(toolType)  
+    local backpack = LocalPlayer.Backpack  
+    for _, tool in pairs(backpack:GetChildren()) do  
+        if tool:IsA("Tool") and tool.ToolTip == toolType then  
+            return tool  
+        end  
+    end  
+    return nil  
+end  
+
+local function EquipWeapon(toolType)  
+    local tool = GetWeapon(toolType)  
+    if tool then  
+        Humanoid:EquipTool(tool)  
+    end  
+end  
+
+local function TweenTo(position)  
+    local distance = (HumanoidRootPart.Position - position).Magnitude  
+    local tweenInfo = TweenInfo.new(distance / 300, Enum.EasingStyle.Linear)  
+    local tween = TweenService:Create(HumanoidRootPart, tweenInfo, {CFrame = CFrame.new(position)})  
+    tween:Play()  
+    tween.Completed:Wait()  
+end  
+
+local function GetNearestMob()  
+    local nearest, dist = nil, math.huge  
+    for _, mob in pairs(workspace.Enemies:GetChildren()) do  
+        if mob:IsA("Model") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then  
+            local mobDist = (HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude  
+            if mobDist < dist then  
+                nearest = mob  
+                dist = mobDist  
+            end  
+        end  
+    end  
+    return nearest  
+end  
+
+local function AttackMob(mob)  
+    EquipWeapon(SelectedWeapon)  
+    TweenTo(mob.HumanoidRootPart.Position + Vector3.new(0, 5, 0))  
+    VirtualUser:ClickButton1(Vector2.new())  
+end  
+
+-- Farm Tab  
+FarmTab:CreateToggle({  
+   Name = "Auto Farm Level",  
+   CurrentValue = false,  
+   Flag = "AutoFarmLevel",  
+   Callback = function(Value)  
+      AutoFarmLevel = Value  
+      if Value then  
+         while AutoFarmLevel do  
+            task.wait()  
+            local mob = GetNearestMob()  
+            if mob then  
+               AttackMob(mob)  
+            end  
+         end  
+      end  
+   end,  
+})  
+
+FarmTab:CreateToggle({  
+   Name = "Auto Mastery Farm",  
+   CurrentValue = false,  
+   Flag = "AutoMastery",  
+   Callback = function(Value)  
+      AutoMastery = Value  
+      -- Logic tương tự, farm mastery  
+   end,  
+})  
+
+FarmTab:CreateToggle({  
+   Name = "Auto Boss Farm",  
+   CurrentValue = false,  
+   Flag = "AutoBoss",  
+   Callback = function(Value)  
+      AutoBoss = Value  
+      -- Logic farm boss  
+   end,  
+})  
+
+FarmTab:CreateToggle({  
+   Name = "Fruit Sniper",  
+   CurrentValue = false,  
+   Flag = "FruitSniper",  
+   Callback = function(Value)  
+      FruitSniper = Value  
+      -- Logic ESP và grab fruit  
+   end,  
+})  
+
+FarmTab:CreateDropdown({  
+   Name = "Select Weapon",  
+   Options = {"Melee", "Sword", "Gun", "Fruit"},  
+   CurrentOption = "Melee",  
+   Flag = "SelectedWeapon",  
+   Callback = function(Option)  
+      SelectedWeapon = Option  
+   end,  
+})  
+
+-- Combat Tab  
+CombatTab:CreateToggle({  
+   Name = "Kill Aura",  
+   CurrentValue = false,  
+   Flag = "KillAura",  
+   Callback = function(Value)  
+      -- Logic kill aura  
+   end,  
+})  
+
+-- Teleport Tab  
+TeleportTab:CreateButton({  
+   Name = "Teleport to Second Sea",  
+   Callback = function()  
+      -- Logic teleport  
+      TweenTo(Vector3.new(-197.5, 331.8, -11238.5))  -- Ví dụ vị trí  
+   end,  
+})  
+
+-- Misc Tab  
+MiscTab:CreateSlider({  
+   Name = "Fly Speed",  
+   Range = {50, 500},  
+   Increment = 10,  
+   Suffix = "Speed",  
+   CurrentValue = 100,  
+   Flag = "FlySpeed",  
+   Callback = function(Value)  
+      FlySpeed = Value  
+   end,  
+})  
+
+MiscTab:CreateToggle({  
+   Name = "Fly",  
+   CurrentValue = false,  
+   Flag = "Fly",  
+   Callback = function(Value)  
+      if Value then  
+         -- Logic fly  
+         local bodyVelocity = Instance.new("BodyVelocity", HumanoidRootPart)  
+         bodyVelocity.Velocity = Vector3.new(0, FlySpeed, 0)  
+         -- Cập nhật theo input  
+      end  
+   end,  
+})  
+
+MiscTab:CreateToggle({  
+   Name = "NoClip",  
+   CurrentValue = false,  
+   Flag = "NoClip",  
+   Callback = function(Value)  
+      NoClip = Value  
+      if Value then  
+         RunService.Stepped:Connect(function()  
+            for _, part in pairs(Character:GetChildren()) do  
+               if part:IsA("BasePart") then  
+                  part.CanCollide = false  
+               end  
+            end  
+         end)  
+      end  
+   end,  
+})  
+
+MiscTab:CreateButton({  
+   Name = "Server Hop",  
+   Callback = function()  
+      local servers = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"))  
+      local serverId = servers.data[math.random(1, #servers.data)].id  
+      game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, serverId)  
+   end,  
+})  
+
+-- Auto reconnect khi disconnect  
+LocalPlayer.CharacterAdded:Connect(function(char)  
+   Character = char  
+   HumanoidRootPart = char:WaitForChild("HumanoidRootPart")  
+   Humanoid = char:WaitForChild("Humanoid")  
+end)
